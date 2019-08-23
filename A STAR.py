@@ -2,6 +2,10 @@ import heapq
 
 
 def matrix():
+    """
+    Функция ввода исходной матрицы
+    :return: Двумерный массив
+    """
     a = list()
     print('Введите матрицу 10х10')
     print('Условные знаки:\n* - клетка\nX - стартовая клетка\nY - конечная клетка\n# - преграда\nO - путь')
@@ -32,25 +36,37 @@ def meta_data(a):
                 y_cord = tuple((num2, num1))
             elif el2 == '*':
                 wall.append(tuple((num2, num1)))
-
     return x_cord, y_cord, wall
 
 
 class Queue:
+    """
+    Класс очередь
+    """
+
     def __init__(self):
         self.elements = []
 
     def empty(self):
+        """
+        Функция проверки клеткок в которых мы не были
+        :return:
+        True - свободных клеток нет
+        False - свободные клетки есть
+        """
         return len(self.elements) == 0
 
-    def put(self, item, priority):
+    def put(self, item, priority):  # положить в очередь
         heapq.heappush(self.elements, (priority, item))
 
-    def get(self):
+    def get(self):  # снять с очереди элемент с самой низкой стоимостью
         return heapq.heappop(self.elements)[1]
 
 
 class Tree:
+    """
+    Класс графа
+    """
     def __init__(self, width, height):
         self.weights = {}
         self.width = width
@@ -58,17 +74,32 @@ class Tree:
         self.walls = []
 
     def in_bounds(self, coord):
+        """
+        Функция проверки границ графа
+        :param coord: координата точки
+        :return:
+        """
         (x, y) = coord
         return 0 <= x < self.width and 0 <= y < self.height
 
     def passable(self, coord):
+        """
+        Функция проверки стены
+        :param coord: координата точки
+        :return:
+        """
         return coord not in self.walls
 
     def neighbors(self, coord):
+        """
+        Функция отпределяющая возможные направления движения
+        :param coord: координата точки
+        :return: Кординаты созможных направлений движения
+        """
         (x, y) = coord
         results = [(x + 1, y), (x, y - 1), (x - 1, y), (x, y + 1)]
         if (x + y) % 2 == 0:
-            results.reverse()  # aesthetics
+            results.reverse()
         results = filter(self.in_bounds, results)
         results = filter(self.passable, results)
         return results
@@ -78,15 +109,27 @@ class Tree:
 
 
 def heuristic_man(a, b):
+    """
+    Манхэттонское расстояние
+    :param a: Координата точки
+    :param b: Координата конца маршрута
+    :return: Расстояние
+    """
     (x1, y1) = a
     (x2, y2) = b
     return abs(x1 - x2) + abs(y1 - y2)
 
 
 def heuristic_euclid(a, b):
+    """
+    Евклидово расстояние
+    :param a: Координата точки
+    :param b: Координата конца маршрута
+    :return: Расстояние
+    """
     (x1, y1) = a
     (x2, y2) = b
-    return ((x1 - x2)**2 + (y1 - y2)**2)**0.5
+    return ((x1 - x2) ** 2 + (y1 - y2) ** 2) ** 0.5
 
 
 def star_search(graph, start_cord, goal, heuristic):
@@ -107,7 +150,7 @@ def star_search(graph, start_cord, goal, heuristic):
             new_cost = cost_so_far[current] + graph.cost(next_coord)  # стоимоть следующей клетки
             if next_coord not in cost_so_far or new_cost < cost_so_far[next_coord]:
                 cost_so_far[next_coord] = new_cost
-                priority = new_cost + heuristic(goal, next_coord)
+                priority = new_cost + heuristic(goal, next_coord)  # вес с учетом эвристики
                 frontier.put(next_coord, priority)
                 came_from[next_coord] = current
 
@@ -138,6 +181,13 @@ def draw_grid(graph, width=2, **style):
 
 
 def final_path(came_from, start_coord, end):
+    """
+    Функция сбора финального пути
+    :param came_from: координаты из списка
+    :param start_coord: начало пути
+    :param end: конец пути
+    :return: путь
+    """
     current = end
     fin_path = list()
     while current != start_coord:
@@ -151,11 +201,19 @@ def final_path(came_from, start_coord, end):
 if __name__ == "__main__":
     example = matrix()
     start, stop, walls = meta_data(example)
+    print(start)
+    if len(start) == 0:
+        print('Вы не задали начало пути\nВведите матрицу заново')
+        example = matrix()
+        start, stop, walls = meta_data(example)
+    elif len(stop) == 0:
+        print('Вы не задали конец пути\nВведите матрицу заново')
+        example = matrix()
+        start, stop, walls = meta_data(example)
 
     tree = Tree(len(example), len(example[0]))
     tree.walls = walls
 
-    #
     tmp_path_euclid = star_search(tree, start, stop, heuristic_euclid)
     path_euclid = final_path(tmp_path_euclid, start, stop)
 
