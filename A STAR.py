@@ -201,7 +201,6 @@ def final_path(came_from, start_coord, end):
 if __name__ == "__main__":
     example = matrix()
     start, stop, walls = meta_data(example)
-    print(start)
     if len(start) == 0:
         print('Вы не задали начало пути\nВведите матрицу заново')
         example = matrix()
